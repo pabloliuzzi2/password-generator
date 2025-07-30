@@ -1,1 +1,19 @@
-
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="24" cy="24" r="24" fill="#E53E3E"/>
+  
+  <!-- Lock body -->
+  <rect x="16" y="28" width="16" height="12" rx="2" fill="white"/>
+  
+  <!-- Lock shackle -->
+  <path d="M20 28V22C20 19.7909 21.7909 18 24 18H24C26.2091 18 28 19.7909 28 22V28" stroke="white" stroke-width="2" fill="none"/>
+  
+  <!-- Keyhole -->
+  <circle cx="24" cy="32" r="1.5" fill="#E53E3E"/>
+  <rect x="23" y="32" width="2" height="4" fill="#E53E3E"/>
+  
+  <!-- Security dots -->
+  <circle cx="20" cy="36" r="1" fill="white" opacity="0.8"/>
+  <circle cx="28" cy="36" r="1" fill="white" opacity="0.8"/>
+  <circle cx="24" cy="38" r="1" fill="white" opacity="0.6"/>
+</svg> 
