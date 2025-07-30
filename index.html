@@ -1,42 +1,132 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Password Generator</title>
-    <link rel="stylesheet" href="style.css">
+    <!-- SICUREZZA: Content Security Policy per prevenire XSS -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline';">
+    <title data-i18n="title">Generatore Password</title>
+    <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
-        <h1>Password Generator</h1>
-        <div class="password-container">
-            <input type="text" id="password" readonly>
-            <button id="copy">Copy</button>
-        </div>
-        <div class="options">
-            <div class="option">
-                <label for="length">Password Length</label>
-                <input type="number" id="length" value="12" min="8" max="32">
+        <header>
+            <div class="logo">
+                <svg class="logo-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="8" y="20" width="32" height="20" rx="2" stroke="#E53E3E" stroke-width="2" fill="none"/>
+                    <path d="M16 20V14C16 10.6863 18.6863 8 22 8H26C29.3137 8 32 10.6863 32 14V20" stroke="#E53E3E" stroke-width="2" fill="none"/>
+                    <circle cx="24" cy="30" r="2" fill="#E53E3E"/>
+                    <path d="M20 30H28" stroke="#E53E3E" stroke-width="1.5"/>
+                </svg>
+                <h1 data-i18n="app_name">PassGen</h1>
             </div>
-            <div class="option">
-                <label for="uppercase">Include Uppercase</label>
-                <input type="checkbox" id="uppercase" checked>
+            
+            <div class="language-selector">
+                <select id="languageSelect">
+                    <option value="it">🇮🇹 Italiano</option>
+                    <option value="en">🇺🇸 English</option>
+                    <option value="es">🇪🇸 Español</option>
+                    <option value="fr">🇫🇷 Français</option>
+                    <option value="de">🇩🇪 Deutsch</option>
+                </select>
             </div>
-            <div class="option">
-                <label for="lowercase">Include Lowercase</label>
-                <input type="checkbox" id="lowercase" checked>
+        </header>
+
+        <main>
+            <!-- Step 1: Verification -->
+            <div class="verification-card" id="verificationCard">
+                <div class="step-indicator">
+                    <div class="step active">1</div>
+                    <div class="step-line"></div>
+                    <div class="step">2</div>
+                </div>
+                
+                <h2 data-i18n="verification_title">Verifica di Sicurezza</h2>
+                <p data-i18n="verification_desc">Per garantire la sicurezza, completa questa verifica prima di accedere al generatore di password</p>
+                
+                <div class="captcha-container">
+                    <div id="captchaChallenge" class="captcha-challenge"></div>
+                    <input type="text" id="captchaInput" placeholder="Inserisci il risultato" data-i18n="captcha_placeholder">
+                    <button id="verifyBtn" class="verify-btn" data-i18n="verify">Verifica e Continua</button>
+                </div>
             </div>
-            <div class="option">
-                <label for="numbers">Include Numbers</label>
-                <input type="checkbox" id="numbers" checked>
+
+            <!-- Step 2: Password Generator (initially hidden) -->
+            <div class="password-card" id="passwordCard" style="display: none;">
+                <div class="step-indicator">
+                    <div class="step completed">1</div>
+                    <div class="step-line"></div>
+                    <div class="step active">2</div>
+                </div>
+                
+                <h2 data-i18n="generate_password">Genera Password</h2>
+
+                <div class="password-options">
+                    <div class="option-group">
+                        <label for="passwordLength" data-i18n="length">Lunghezza:</label>
+                        <div class="length-control">
+                            <input type="range" id="passwordLength" min="8" max="64" value="16">
+                            <span id="lengthValue">16</span>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="uppercase" checked>
+                            <span class="checkmark"></span>
+                            <span data-i18n="uppercase">Maiuscole (A-Z)</span>
+                        </label>
+                        
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="lowercase" checked>
+                            <span class="checkmark"></span>
+                            <span data-i18n="lowercase">Minuscole (a-z)</span>
+                        </label>
+                        
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="numbers" checked>
+                            <span class="checkmark"></span>
+                            <span data-i18n="numbers">Numeri (0-9)</span>
+                        </label>
+                        
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="symbols">
+                            <span class="checkmark"></span>
+                            <span data-i18n="symbols">Simboli (!@#$%^&*)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="strength-meter">
+                    <label data-i18n="strength">Forza:</label>
+                    <div class="strength-bar">
+                        <div id="strengthFill" class="strength-fill"></div>
+                    </div>
+                    <span id="strengthText" data-i18n="strength_weak">Debole</span>
+                </div>
+
+                <!-- Pulsante Genera spostato in alto per migliore UX -->
+                <button id="generateBtn" class="generate-btn" data-i18n="generate">Genera Password</button>
+                
+                <div class="password-display">
+                    <input type="text" id="passwordOutput" readonly>
+                    <button id="copyBtn" class="copy-btn" data-i18n="copy">Copia</button>
+                </div>
+                
+                <div class="back-to-verification">
+                    <button id="backToVerificationBtn" class="back-btn" data-i18n="back_to_verification">Torna alla Verifica</button>
+                </div>
             </div>
-            <div class="option">
-                <label for="symbols">Include Symbols</label>
-                <input type="checkbox" id="symbols" checked>
-            </div>
-        </div>
-        <button id="generate">Generate Password</button>
+        </main>
+
+        <footer>
+            <p data-i18n="footer">Generatore di password sicuro e gratuito powered by NBN</p>
+        </footer>
     </div>
-    <script src="script.js"></script>
+
+    <script src="translations.js"></script>
+    <script src="app.js"></script>
 </body>
-</html>
+</html> 

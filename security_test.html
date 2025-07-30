@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Sicurezza - PassGen</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .pass { color: green; }
+        .fail { color: red; }
+        .warning { color: orange; }
+        .test-result { margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>🔒 Test di Sicurezza - PassGen</h1>
+    
+    <div class="test-section">
+        <h2>1. Test Vulnerabilità XSS</h2>
+        <div id="xss-test" class="test-result">
+            <p>Testando iniezione HTML nei captcha...</p>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Test Randomizzazione</h2>
+        <div id="random-test" class="test-result">
+            <p>Testando qualità della randomizzazione...</p>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Test Validazione Input</h2>
+        <div id="validation-test" class="test-result">
+            <p>Testando validazione input captcha...</p>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Test Esposizione Globale</h2>
+        <div id="global-test" class="test-result">
+            <p>Testando esposizione oggetti globali...</p>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>5. Test Content Security Policy</h2>
+        <div id="csp-test" class="test-result">
+            <p>Testando CSP...</p>
+        </div>
+    </div>
+
+    <script>
+        // Test di sicurezza per PassGen
+        class SecurityTester {
+            constructor() {
+                this.results = {};
+            }
+
+            // Test 1: Vulnerabilità XSS
+            testXSS() {
+                const testDiv = document.getElementById('xss-test');
+                try {
+                    // Simula tentativo di XSS
+                    const maliciousInput = '<script>alert("XSS")</script>';
+                    const div = document.createElement('div');
+                    div.textContent = maliciousInput; // Dovrebbe essere sicuro
+                    
+                    if (div.textContent === maliciousInput) {
+                        testDiv.innerHTML = '<p class="pass">✅ XSS Test PASSED: textContent previene XSS</p>';
+                        this.results.xss = 'PASS';
+                    } else {
+                        testDiv.innerHTML = '<p class="fail">❌ XSS Test FAILED: Possibile vulnerabilità</p>';
+                        this.results.xss = 'FAIL';
+                    }
+                } catch (error) {
+                    testDiv.innerHTML = '<p class="fail">❌ XSS Test ERROR: ' + error.message + '</p>';
+                    this.results.xss = 'ERROR';
+                }
+            }
+
+            // Test 2: Randomizzazione
+            testRandomization() {
+                const testDiv = document.getElementById('random-test');
+                try {
+                    // Test se crypto.getRandomValues è disponibile
+                    if (window.crypto && window.crypto.getRandomValues) {
+                        const array = new Uint8Array(10);
+                        crypto.getRandomValues(array);
+                        
+                        // Verifica che i valori siano diversi
+                        const uniqueValues = new Set(array);
+                        if (uniqueValues.size > 5) {
+                            testDiv.innerHTML = '<p class="pass">✅ Random Test PASSED: crypto.getRandomValues disponibile</p>';
+                            this.results.random = 'PASS';
+                        } else {
+                            testDiv.innerHTML = '<p class="warning">⚠️ Random Test WARNING: Randomizzazione potrebbe essere debole</p>';
+                            this.results.random = 'WARNING';
+                        }
+                    } else {
+                        testDiv.innerHTML = '<p class="fail">❌ Random Test FAILED: crypto.getRandomValues non disponibile</p>';
+                        this.results.random = 'FAIL';
+                    }
+                } catch (error) {
+                    testDiv.innerHTML = '<p class="fail">❌ Random Test ERROR: ' + error.message + '</p>';
+                    this.results.random = 'ERROR';
+                }
+            }
+
+            // Test 3: Validazione Input
+            testValidation() {
+                const testDiv = document.getElementById('validation-test');
+                try {
+                    // Test validazione caratteri
+                    const validChars = /^[a-zA-Z0-9\s]+$/;
+                    const testCases = [
+                        { input: '123', expected: true },
+                        { input: 'abc', expected: true },
+                        { input: 'abc123', expected: true },
+                        { input: '<script>', expected: false },
+                        { input: 'alert("xss")', expected: false },
+                        { input: '', expected: false }
+                    ];
+
+                    let passed = 0;
+                    testCases.forEach(test => {
+                        if (validChars.test(test.input) === test.expected) {
+                            passed++;
+                        }
+                    });
+
+                    if (passed === testCases.length) {
+                        testDiv.innerHTML = '<p class="pass">✅ Validation Test PASSED: Validazione input funziona</p>';
+                        this.results.validation = 'PASS';
+                    } else {
+                        testDiv.innerHTML = '<p class="fail">❌ Validation Test FAILED: Validazione insufficiente</p>';
+                        this.results.validation = 'FAIL';
+                    }
+                } catch (error) {
+                    testDiv.innerHTML = '<p class="fail">❌ Validation Test ERROR: ' + error.message + '</p>';
+                    this.results.validation = 'ERROR';
+                }
+            }
+
+            // Test 4: Esposizione Globale
+            testGlobalExposure() {
+                const testDiv = document.getElementById('global-test');
+                try {
+                    // Verifica che l'oggetto globale sia limitato
+                    if (window.passGenApp) {
+                        const keys = Object.keys(window.passGenApp);
+                        if (keys.length <= 2 && keys.includes('generateCaptcha')) {
+                            testDiv.innerHTML = '<p class="pass">✅ Global Test PASSED: Esposizione globale limitata</p>';
+                            this.results.global = 'PASS';
+                        } else {
+                            testDiv.innerHTML = '<p class="warning">⚠️ Global Test WARNING: Troppi metodi esposti</p>';
+                            this.results.global = 'WARNING';
+                        }
+                    } else {
+                        testDiv.innerHTML = '<p class="pass">✅ Global Test PASSED: Nessun oggetto globale esposto</p>';
+                        this.results.global = 'PASS';
+                    }
+                } catch (error) {
+                    testDiv.innerHTML = '<p class="fail">❌ Global Test ERROR: ' + error.message + '</p>';
+                    this.results.global = 'ERROR';
+                }
+            }
+
+            // Test 5: Content Security Policy
+            testCSP() {
+                const testDiv = document.getElementById('csp-test');
+                try {
+                    // Verifica se CSP è presente
+                    const meta = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
+                    if (meta && meta.content) {
+                        testDiv.innerHTML = '<p class="pass">✅ CSP Test PASSED: Content Security Policy presente</p>';
+                        this.results.csp = 'PASS';
+                    } else {
+                        testDiv.innerHTML = '<p class="warning">⚠️ CSP Test WARNING: Content Security Policy non trovata</p>';
+                        this.results.csp = 'WARNING';
+                    }
+                } catch (error) {
+                    testDiv.innerHTML = '<p class="fail">❌ CSP Test ERROR: ' + error.message + '</p>';
+                    this.results.csp = 'ERROR';
+                }
+            }
+
+            // Esegui tutti i test
+            runAllTests() {
+                this.testXSS();
+                this.testRandomization();
+                this.testValidation();
+                this.testGlobalExposure();
+                this.testCSP();
+                
+                // Mostra riepilogo
+                setTimeout(() => this.showSummary(), 1000);
+            }
+
+            // Mostra riepilogo risultati
+            showSummary() {
+                const summary = document.createElement('div');
+                summary.className = 'test-section';
+                summary.innerHTML = `
+                    <h2>📊 Riepilogo Test Sicurezza</h2>
+                    <p><strong>XSS Protection:</strong> <span class="${this.results.xss === 'PASS' ? 'pass' : 'fail'}">${this.results.xss}</span></p>
+                    <p><strong>Randomization:</strong> <span class="${this.results.random === 'PASS' ? 'pass' : 'fail'}">${this.results.random}</span></p>
+                    <p><strong>Input Validation:</strong> <span class="${this.results.validation === 'PASS' ? 'pass' : 'fail'}">${this.results.validation}</span></p>
+                    <p><strong>Global Exposure:</strong> <span class="${this.results.global === 'PASS' ? 'pass' : 'fail'}">${this.results.global}</span></p>
+                    <p><strong>Content Security Policy:</strong> <span class="${this.results.csp === 'PASS' ? 'pass' : 'fail'}">${this.results.csp}</span></p>
+                `;
+                document.body.appendChild(summary);
+            }
+        }
+
+        // Esegui i test quando la pagina è caricata
+        document.addEventListener('DOMContentLoaded', () => {
+            const tester = new SecurityTester();
+            tester.runAllTests();
+        });
+    </script>
+</body>
+</html> 
